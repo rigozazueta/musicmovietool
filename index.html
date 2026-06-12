@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSICMOVIE — cinematic visuals for house music</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- three.js canvas is appended here by src/main.js -->
+
+  <!-- cinematic overlays -->
+  <div id="letterbox" class="on">
+    <div class="bar top"></div>
+    <div class="bar bottom"></div>
+  </div>
+  <div id="vignette"></div>
+  <canvas id="grain"></canvas>
+  <div id="flash"></div>
+  <div id="fade"></div>
+
+  <div id="titlecard">
+    <div id="title-kicker"></div>
+    <div id="title-main"></div>
+    <div id="title-sub"></div>
+  </div>
+
+  <!-- drop hint shown before any source is active -->
+  <div id="splash">
+    <div class="splash-logo">MUSICMOVIE</div>
+    <div class="splash-tag">a feature presentation of your set</div>
+    <div class="splash-hint">drop an audio file anywhere &mdash; or pick a live source below</div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-group" id="hud-source">
+      <button id="btn-file" title="Load an audio file">LOAD TRACK</button>
+      <input id="file-input" type="file" accept="audio/*" hidden />
+      <button id="btn-mic" title="Listen to mic / line-in (DJ mixer)">LIVE IN</button>
+      <button id="btn-tab" title="Capture audio from another browser tab">TAB AUDIO</button>
+    </div>
+
+    <div class="hud-group" id="hud-transport">
+      <button id="btn-play" title="Play / pause (Space)">&#9654;</button>
+      <input id="seek" type="range" min="0" max="1000" value="0" />
+      <span id="time">0:00</span>
+    </div>
+
+    <div class="hud-group" id="hud-scenes">
+      <!-- scene buttons injected by src/ui.js -->
+      <button id="btn-auto" class="active" title="Auto-director picks scenes from the music (A)">AUTO</button>
+    </div>
+
+    <div class="hud-group" id="hud-meta">
+      <input id="meta-artist" type="text" placeholder="artist" spellcheck="false" />
+      <input id="meta-title" type="text" placeholder="track title" spellcheck="false" />
+      <button id="btn-card" title="Show title card (T)">CARD</button>
+      <button id="btn-full" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+  </div>
+
+  <div id="readout">
+    <span id="beat-dot"></span>
+    <span id="bpm">--- BPM</span>
+    <span id="section">&mdash;</span>
+    <div id="intensity"><div id="intensity-fill"></div></div>
+  </div>
+
+  <div id="hint">space play &middot; 1-4 scenes &middot; A auto &middot; F fullscreen &middot; T title card &middot; L letterbox &middot; H hide ui</div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
