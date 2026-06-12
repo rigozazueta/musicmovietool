@@ -8,7 +8,7 @@ function fmtTime(s) {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
-export function createUI({ audio, midi, director, overlays }) {
+export function createUI({ audio, midi, sync, director, overlays }) {
   const splash = $('splash');
   const btnPlay = $('btn-play');
   const seek = $('seek');
@@ -63,6 +63,17 @@ export function createUI({ audio, midi, director, overlays }) {
     try { await audio.useTab(); markSource('tab'); }
     catch (e) { console.warn(e); overlays.title('', 'NO TAB AUDIO', 'tick “share tab audio” in the picker', 3000); }
   });
+
+  const btnLink = $('btn-link');
+  btnLink.addEventListener('click', () => {
+    const armed = sync.toggle();
+    if (armed && !sync.connected) {
+      overlays.title('osc link', 'SEARCHING FOR BRIDGE', 'run: npm run bridge', 3000);
+    }
+  });
+  sync.onStatus = (ok) => {
+    if (ok) overlays.title('osc link', 'CONNECTED', 'streaming to osc 127.0.0.1:8000', 2400);
+  };
 
   const btnMidi = $('btn-midi');
   btnMidi.addEventListener('click', async () => {
@@ -186,6 +197,7 @@ export function createUI({ audio, midi, director, overlays }) {
       sectionEl.textContent = audio.active ? audio.section : '—';
       intensityFill.style.width = `${(audio.intensity * 100).toFixed(0)}%`;
       btnMidi.classList.toggle('active', midiLive);
+      btnLink.classList.toggle('active', sync.connected);
 
       if (audio.sourceType === 'file' && !seeking) {
         const d = audio.mediaEl.duration;

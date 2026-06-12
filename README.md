@@ -106,6 +106,40 @@ Three tiers, combinable:
 3. **Roadmap:** Ableton Link and Pro DJ Link need a tiny local bridge app
    (browsers can't speak UDP) — planned below.
 
+## Driving Unreal Engine, TouchDesigner, Resolume… (LINK)
+
+MUSICMOVIE can act as the *musical brain* for a pro rendering rig: the **LINK**
+button streams every beat, BPM, band level, section and drop as **OSC** — the
+live-show protocol Unreal, TouchDesigner, Resolume, Notch and MadMapper all
+speak. Browsers can't send UDP, so a tiny relay does it:
+
+```bash
+npm run bridge                       # WebSocket :7400 → OSC udp://127.0.0.1:8000
+npm run bridge -- --osc-host 192.168.1.50 --osc-port 9000   # send to another machine
+```
+
+Start the bridge, click **LINK** in the HUD (works from the hosted URL too —
+loopback connections are allowed from https), and these arrive in real time:
+
+| OSC address | Args | When |
+| --- | --- | --- |
+| `/mm/audio` | bpm, bass, mid, high, intensity, phase (floats) | 30 Hz |
+| `/mm/bpm` `/mm/bass` `/mm/mid` `/mm/high` `/mm/intensity` | float | 30 Hz |
+| `/mm/beat` `/mm/bar` `/mm/phrase` | int counter | on the event |
+| `/mm/drop` | — | on a drop |
+| `/mm/section` | `groove` / `peak` / `breakdown` | on change |
+
+**Unreal Engine 5:** enable the built-in **OSC** plugin → in a Blueprint call
+*Create OSC Server* (`0.0.0.0`, port `8000`) → *Bind Event to On OSC Message
+Received* (filter by address) → drive Niagara user parameters, light
+intensities and material scalars from `/mm/bass` and friends, spawn bursts on
+`/mm/drop`. (UE's *Audio Synesthesia* plugin can analyse audio natively too —
+LINK is for keeping this director as the single source of musical truth.)
+
+**TouchDesigner:** add an *OSC In CHOP* on port `8000` — every address shows up
+as a channel. **Resolume:** *Preferences → OSC → Input 8000*, then map any
+effect/composition parameter to the incoming addresses.
+
 ## Architecture
 
 ```

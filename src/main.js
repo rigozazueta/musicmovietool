@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AudioEngine } from './audio.js';
 import { MidiClock } from './midi.js';
+import { SyncOutput } from './sync.js';
 import { Director } from './director.js';
 import { createOverlays } from './overlays.js';
 import { createUI } from './ui.js';
@@ -23,6 +24,7 @@ document.body.prepend(renderer.domElement);
 const audio = new AudioEngine();
 const midi = new MidiClock();
 audio.midi = midi;
+const sync = new SyncOutput(audio);
 const overlays = createOverlays();
 const scenes = [
   createNeonScene(),
@@ -34,7 +36,7 @@ const scenes = [
   createGridScene(),
 ];
 const director = new Director(renderer, audio, scenes, overlays);
-const ui = createUI({ audio, midi, director, overlays });
+const ui = createUI({ audio, midi, sync, director, overlays });
 
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
@@ -53,6 +55,7 @@ function frame(now) {
   audio.update(dt);
   director.update(dt, t);
   overlays.update(dt);
+  sync.update(dt);
   ui.update(dt, t);
 }
 requestAnimationFrame(frame);
