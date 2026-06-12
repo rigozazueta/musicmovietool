@@ -3,7 +3,7 @@
 // breathes with the bass; the sky drifts between ember and violet with the mids.
 
 import * as THREE from 'three';
-import { makeFigure, makeParticles } from './common.js';
+import { makeFigure, makeParticles, addSkyDome } from './common.js';
 
 const WRAP = 120; // terrain is periodic in x with this length so the walk loops seamlessly
 
@@ -28,6 +28,8 @@ export function createDunesScene() {
   const sunLight = new THREE.DirectionalLight(0xffb36b, 2.2);
   sunLight.position.set(-30, 14, -60);
   scene.add(sunLight);
+
+  const sky = addSkyDome(scene, 'dunes.png'); // painted dusk sky, if fetched
 
   // span 3 wraps in x so the mesh edge stays beyond the fog from any rig position
   const terrainGeo = new THREE.PlaneGeometry(WRAP * 3, 240, 150, 90);
@@ -133,6 +135,7 @@ export function createDunesScene() {
       // sky drifts with the mids, suns breathe with the bass
       scene.background.copy(skyA).lerp(skyB, THREE.MathUtils.clamp(audio.sMid * 1.6, 0, 1));
       scene.fog.color.copy(scene.background);
+      if (sky) sky.material.color.setScalar(0.72 + audio.sMid * 0.5);
       const pulse = 1 + audio.sBass * 0.18;
       sun.scale.setScalar(pulse);
       sunHalo.scale.setScalar(pulse * (1 + audio.intensity * 0.3));

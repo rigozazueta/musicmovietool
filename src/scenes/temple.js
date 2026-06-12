@@ -3,12 +3,14 @@
 // Orbs orbit faster as energy returns; stars shimmer with the hi-hats.
 
 import * as THREE from 'three';
-import { beatEnv } from './common.js';
+import { beatEnv, addSkyDome } from './common.js';
 
 export function createTempleScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x070312);
   scene.fog = new THREE.Fog(0x0d0620, 30, 120);
+
+  const sky = addSkyDome(scene, 'temple.png'); // painted nebula, if fetched
 
   scene.add(new THREE.AmbientLight(0x3b2a66, 1.2));
   const key = new THREE.DirectionalLight(0xb49aff, 1.4);
@@ -180,6 +182,7 @@ export function createTempleScene() {
 
       starMat.opacity = 0.55 + audio.sHigh * 1.6 + Math.sin(t * 3) * 0.06;
       starMat.size = 0.45 + audio.sHigh * 0.6;
+      if (sky) sky.material.color.setScalar(0.55 + audio.intensity * 0.3 + env * 0.15);
 
       // hologram flicker: steady shimmer plus scanline-style dropouts
       holoMat.opacity = 0.1 + env * 0.18 + (Math.sin(t * 31) > 0.7 ? 0.12 : 0);

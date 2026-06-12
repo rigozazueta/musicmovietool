@@ -5,6 +5,11 @@ feed it a live DJ set — and it presents the music like a film: characters,
 environments, camera direction, title cards and scene changes all driven by
 real-time audio analysis.
 
+**Live build:** https://rigozazueta.github.io/musicmovietool/ — deployed from
+this branch by GitHub Actions (`.github/workflows/deploy.yml`) on every push.
+If the first deploy doesn't appear, enable it once in the repo settings:
+*Settings → Pages → Source: GitHub Actions*.
+
 ## Quick start
 
 ```bash
@@ -131,9 +136,12 @@ arena-grade visuals:
 1. **More in-engine craft (free):** custom shaders (volumetric light, fresnel
    rim glow on characters, SDF environments), higher-detail character rigs,
    post FX like chromatic aberration and anamorphic flares.
-2. **AI-generated art assets:** equirectangular skybox paintings and backdrop
-   plates generated per scene (Midjourney, Higgsfield, etc.) used as
-   `scene.background` / environment maps — big visual lift, zero runtime cost.
+2. **AI-generated art assets** *(in use now)*: the Dunes, Temple and Fleet
+   chapters wrap AI-painted 2560×1080 backdrops around the scene on a sky dome
+   (`addSkyDome` in `src/scenes/common.js`). `scripts/fetch-skies.mjs` pulls
+   them automatically before `dev`/`build`; drop your own art at
+   `public/skies/{dunes,temple,fleet}.png` to override, or delete the files to
+   fall back to fully procedural skies.
 3. **Pro pipeline integration:** acts like Anyma run Notch / TouchDesigner /
    Unreal Engine driven by timecode, with content teams. This tool can sit in
    that world today: run it fullscreen and bring the browser window into

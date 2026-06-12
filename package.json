@@ -9,10 +9,13 @@
     "url": "http://local_proxy@127.0.0.1:36179/git/rigozazueta/musicmovietool"
   },
   "scripts": {
+    "predev": "node scripts/fetch-skies.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/fetch-skies.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node scripts/smoke.mjs"
+    "test": "node scripts/smoke.mjs",
+    "fetch-skies": "node scripts/fetch-skies.mjs"
   },
   "dependencies": {
     "three": "^0.184.0"

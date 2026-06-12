@@ -4,6 +4,7 @@
 // volleys arc across the dark when the energy runs hot.
 
 import * as THREE from 'three';
+import { addSkyDome } from './common.js';
 
 function makeCapitalShip(len, hullColor = 0x10141f) {
   const ship = new THREE.Group();
@@ -40,6 +41,8 @@ export function createFleetScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x030309);
   scene.fog = new THREE.Fog(0x030309, 60, 300);
+
+  const sky = addSkyDome(scene, 'fleet.png'); // painted deep space, if fetched
 
   scene.add(new THREE.AmbientLight(0x222a44, 1.0));
   const starlight = new THREE.DirectionalLight(0xaec4ff, 1.5);
@@ -175,6 +178,7 @@ export function createFleetScene() {
 
       starMat.opacity = 0.6 + audio.sHigh * 1.2;
       ring.material.opacity = 0.14 + audio.sMid * 0.15;
+      if (sky) sky.material.color.setScalar(0.6 + audio.intensity * 0.25 + env * 0.1);
     },
 
     shots: [

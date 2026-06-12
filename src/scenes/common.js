@@ -117,3 +117,33 @@ export function makeParticles({
 export function beatEnv(audio, sharpness = 4.5) {
   return Math.exp(-sharpness * audio.beatPhase) * Math.min(1, audio.sBass * 3);
 }
+
+// Painted sky: wraps a wide backdrop image (public/skies/*) around the scene
+// on an inverted sphere. Mirrored horizontal repeat hides the wrap seam.
+// Resolves null headlessly or when the image is missing, so scenes must treat
+// the dome as optional decoration.
+export function addSkyDome(scene, name) {
+  if (typeof window === 'undefined' || typeof document.createElementNS !== 'function') return null;
+  const base = import.meta.env ? import.meta.env.BASE_URL : './';
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(420, 36, 20),
+    new THREE.MeshBasicMaterial({ side: THREE.BackSide, fog: false, depthWrite: false }),
+  );
+  dome.visible = false;
+  dome.renderOrder = -1; // behind everything, never writes depth
+  new THREE.TextureLoader().load(
+    `${base}skies/${name}`,
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.MirroredRepeatWrapping;
+      tex.repeat.x = 2;
+      dome.material.map = tex;
+      dome.material.needsUpdate = true;
+      dome.visible = true;
+    },
+    undefined,
+    () => scene.remove(dome), // no artwork shipped — keep the procedural sky
+  );
+  scene.add(dome);
+  return dome;
+}
