@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { AudioEngine } from './audio.js';
+import { MidiClock } from './midi.js';
 import { Director } from './director.js';
 import { createOverlays } from './overlays.js';
 import { createUI } from './ui.js';
@@ -7,6 +8,9 @@ import { createNeonScene } from './scenes/neon.js';
 import { createDunesScene } from './scenes/dunes.js';
 import { createTempleScene } from './scenes/temple.js';
 import { createVoidScene } from './scenes/voidclub.js';
+import { createColossusScene } from './scenes/colossus.js';
+import { createFleetScene } from './scenes/fleet.js';
+import { createGridScene } from './scenes/grid.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -17,10 +21,20 @@ renderer.domElement.classList.add('webgl');
 document.body.prepend(renderer.domElement);
 
 const audio = new AudioEngine();
+const midi = new MidiClock();
+audio.midi = midi;
 const overlays = createOverlays();
-const scenes = [createNeonScene(), createDunesScene(), createTempleScene(), createVoidScene()];
+const scenes = [
+  createNeonScene(),
+  createDunesScene(),
+  createTempleScene(),
+  createVoidScene(),
+  createColossusScene(),
+  createFleetScene(),
+  createGridScene(),
+];
 const director = new Director(renderer, audio, scenes, overlays);
-const ui = createUI({ audio, director, overlays });
+const ui = createUI({ audio, midi, director, overlays });
 
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);

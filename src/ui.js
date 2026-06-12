@@ -8,7 +8,7 @@ function fmtTime(s) {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
-export function createUI({ audio, director, overlays }) {
+export function createUI({ audio, midi, director, overlays }) {
   const splash = $('splash');
   const btnPlay = $('btn-play');
   const seek = $('seek');
@@ -62,6 +62,18 @@ export function createUI({ audio, director, overlays }) {
   $('btn-tab').addEventListener('click', async () => {
     try { await audio.useTab(); markSource('tab'); }
     catch (e) { console.warn(e); overlays.title('', 'NO TAB AUDIO', 'tick “share tab audio” in the picker', 3000); }
+  });
+
+  const btnMidi = $('btn-midi');
+  btnMidi.addEventListener('click', async () => {
+    try {
+      await midi.enable();
+      splash.classList.add('hidden');
+      overlays.title('midi clock', 'SYNC ARMED', 'waiting for ticks from your gear', 3000);
+    } catch (e) {
+      console.warn(e);
+      overlays.title('', 'NO MIDI', e.message, 3000);
+    }
   });
 
   // drag & drop anywhere
@@ -128,6 +140,7 @@ export function createUI({ audio, director, overlays }) {
       case 'Space': e.preventDefault(); audio.togglePlay(); break;
       case 'KeyF': toggleFullscreen(); break;
       case 'KeyA': director.setAuto(true); break;
+      case 'KeyB': audio.alignDownbeat(); break; // mark the "one" live
       case 'KeyT': showTrackCard(); break;
       case 'KeyL': overlays.toggleLetterbox(); break;
       case 'KeyH': document.body.classList.toggle('ui-hidden'); break;
@@ -166,9 +179,13 @@ export function createUI({ audio, director, overlays }) {
       if (acc < 0.12) return; // 8 Hz is plenty for text
       acc = 0;
 
-      bpmEl.textContent = audio.bpm > 0 ? `${audio.bpm.toFixed(0)} BPM` : '--- BPM';
+      const midiLive = audio.midiLive;
+      bpmEl.textContent = audio.bpm > 0
+        ? `${audio.bpm.toFixed(0)} BPM${midiLive ? ' ·MIDI' : ''}`
+        : '--- BPM';
       sectionEl.textContent = audio.active ? audio.section : '—';
       intensityFill.style.width = `${(audio.intensity * 100).toFixed(0)}%`;
+      btnMidi.classList.toggle('active', midiLive);
 
       if (audio.sourceType === 'file' && !seeking) {
         const d = audio.mediaEl.duration;

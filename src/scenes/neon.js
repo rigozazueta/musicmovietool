@@ -108,7 +108,40 @@ export function createNeonScene() {
   });
   scene.add(rain.points);
 
-  const tmp = new THREE.Vector3();
+  // a capital ship crawling across the sky, hazy in the rain
+  const ship = new THREE.Group();
+  const hullMat = new THREE.MeshStandardMaterial({ color: 0x0a0d18, roughness: 0.9 });
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(26, 2.2, 7), hullMat);
+  const bow = new THREE.Mesh(new THREE.BoxGeometry(8, 1.2, 4.2), hullMat);
+  bow.position.set(15.5, -0.2, 0);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(3, 2.4, 2), hullMat);
+  bridge.position.set(-8, 2.1, 0);
+  ship.add(hull, bow, bridge);
+  const stripMat = new THREE.MeshBasicMaterial({ color: 0x9fd4ff });
+  for (const z of [-3.6, 3.6]) {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(22, 0.12, 0.1), stripMat);
+    strip.position.set(0, 0.2, z);
+    ship.add(strip);
+  }
+  const engineMat = new THREE.MeshBasicMaterial({
+    color: 0x66b9ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const engines = [];
+  for (const z of [-2.2, 0, 2.2]) {
+    const e = new THREE.Mesh(new THREE.CircleGeometry(0.7, 16), engineMat);
+    e.position.set(-13.1, 0, z);
+    e.rotation.y = -Math.PI / 2;
+    engines.push(e);
+    ship.add(e);
+  }
+  const navA = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff4444 }));
+  navA.position.set(18.5, 0.4, 0);
+  const navB = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0x55ff88 }));
+  navB.position.set(-9, 3.6, 0);
+  ship.add(navA, navB);
+  ship.position.set(0, 36, -28);
+  ship.rotation.y = 0.25;
+  scene.add(ship);
 
   return {
     name: 'NEON DISTRICT',
@@ -135,6 +168,13 @@ export function createNeonScene() {
       }
       pink.intensity = 40 + env * 70;
       cyan.intensity = 35 + audio.sMid * 60;
+
+      // ship crawls across the skyline and loops around
+      ship.position.x = ((t * 1.1 + 80) % 160) - 80;
+      ship.position.y = 36 + Math.sin(t * 0.23) * 1.2;
+      engineMat.opacity = 0.45 + audio.sBass * 0.5;
+      navA.visible = Math.sin(t * 4) > 0;
+      navB.visible = Math.sin(t * 4 + Math.PI) > 0;
 
       // rain
       const pos = rain.positions;

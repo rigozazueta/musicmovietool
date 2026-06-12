@@ -36,6 +36,9 @@ export class AudioEngine {
     this.barCount = 0;
     this.section = 'groove';
 
+    // optional MidiClock — when it's receiving ticks it owns the beat grid
+    this.midi = null;
+
     // internals
     this._bassHist = [];
     this._lastBeatT = -10;
@@ -49,7 +52,14 @@ export class AudioEngine {
   on(evt, fn) { (this._listeners[evt] ??= []).push(fn); }
   _emit(evt, data) { (this._listeners[evt] || []).forEach((f) => f(data)); }
 
-  get active() { return this.sourceType !== 'none'; }
+  get active() { return this.sourceType !== 'none' || this.midiLive; }
+  get midiLive() { return !!(this.midi && this.midi.fresh); }
+
+  // live tool: press on the "one" so bars/phrases count from there
+  alignDownbeat() {
+    this.beatCount -= this.beatCount % 4;
+    this.barCount = (this.beatCount / 4) | 0;
+  }
 
   resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
 
@@ -163,6 +173,7 @@ export class AudioEngine {
   update(dt) {
     this.beat = false;
     if (!this.analyser || this.sourceType === 'none') {
+      if (this.midiLive) { this._midiOnly(dt); return; }
       // decay toward silence so visuals settle gracefully
       this.sBass *= 0.95; this.sMid *= 0.95; this.sHigh *= 0.95;
       this.level *= 0.95; this.intensity *= 0.98;
@@ -187,12 +198,45 @@ export class AudioEngine {
     }
     this.level = Math.sqrt(sum / (this.timeData.length / 2));
 
-    this._detectBeat(now);
+    if (this.midiLive) {
+      // MIDI clock owns the grid; the audio still drives bands and intensity
+      if (this.midi.bpm > 0) this.bpm = this.midi.bpm;
+      let n = this.midi.consumeBeats();
+      while (n-- > 0) this._fireBeat();
+      this.beatPhase = this.midi.phase();
+    } else {
+      this._detectBeat(now);
+      // 0..1 progress between beats — drives dance animation between hits
+      const interval = this.bpm > 0 ? 60 / this.bpm : 0.5;
+      this.beatPhase = Math.min((now - this._lastBeatT) / interval, 1);
+    }
     this._trackIntensity(dt, now);
+  }
 
-    // 0..1 progress between beats — drives dance animation between hits
-    const interval = this.bpm > 0 ? 60 / this.bpm : 0.5;
-    this.beatPhase = Math.min((now - this._lastBeatT) / interval, 1);
+  // MIDI clock with no audio source: keep the grid, synthesize gentle band
+  // motion so the picture still breathes
+  _midiOnly(dt) {
+    if (this.midi.bpm > 0) this.bpm = this.midi.bpm;
+    let n = this.midi.consumeBeats();
+    while (n-- > 0) this._fireBeat();
+    this.beatPhase = this.midi.phase();
+    const env = Math.exp(-4 * this.beatPhase);
+    this.sBass = 0.22 + env * 0.5;
+    this.sMid = 0.18 + env * 0.15;
+    this.sHigh = 0.12 + env * 0.1;
+    this.level = 0.25 + env * 0.2;
+    this.intensity += (0.55 - this.intensity) * Math.min(1, dt);
+  }
+
+  _fireBeat() {
+    this.beat = true;
+    this.beatCount++;
+    this._emit('beat', this.beatCount);
+    if (this.beatCount % 4 === 0) {
+      this.barCount++;
+      this._emit('bar', this.barCount);
+    }
+    if (this.beatCount % 32 === 0) this._emit('phrase', this.beatCount / 32);
   }
 
   _detectBeat(now) {
@@ -209,20 +253,13 @@ export class AudioEngine {
     // four-on-the-floor: kick energy spikes above its rolling average.
     // refractory 0.27s allows up to ~220 BPM; floor avoids beats in silence.
     if (this.bass > Math.max(0.09, avg * 1.32) && sinceLast > 0.27) {
-      if (sinceLast > 0.27 && sinceLast < 1.4) {
+      if (sinceLast < 1.4) {
         this._intervals.push(sinceLast);
         if (this._intervals.length > 16) this._intervals.shift();
         this._updateBpm();
       }
       this._lastBeatT = now;
-      this.beat = true;
-      this.beatCount++;
-      this._emit('beat', this.beatCount);
-      if (this.beatCount % 4 === 0) {
-        this.barCount++;
-        this._emit('bar', this.barCount);
-      }
-      if (this.beatCount % 32 === 0) this._emit('phrase', this.beatCount / 32);
+      this._fireBeat();
     }
   }
 

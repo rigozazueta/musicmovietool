@@ -50,6 +50,32 @@ export function createTempleScene() {
   monk.position.y = 3.4;
   scene.add(monk);
 
+  // hologram shell: additive wireframe ghost flickering over the monk
+  const holoMat = new THREE.MeshBasicMaterial({
+    color: 0x8df6ff, wireframe: true, transparent: true, opacity: 0.15,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const holoRobe = new THREE.Mesh(robe.geometry, holoMat);
+  holoRobe.scale.setScalar(1.05);
+  robe.add(holoRobe);
+  const holoHood = new THREE.Mesh(hood.geometry, holoMat);
+  holoHood.scale.setScalar(1.08);
+  hood.add(holoHood);
+
+  // light shafts falling on the platform
+  const shafts = [];
+  for (let i = 0; i < 4; i++) {
+    const m = new THREE.MeshBasicMaterial({
+      color: 0xb49aff, transparent: true, opacity: 0.05, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(2.4, 26, 12, 1, true), m);
+    const a = (i / 4) * Math.PI * 2 + 0.4;
+    cone.position.set(Math.cos(a) * 4.5, 14, Math.sin(a) * 4.5);
+    shafts.push(cone);
+    scene.add(cone);
+  }
+
   const core = new THREE.Mesh(
     new THREE.SphereGeometry(0.55, 20, 16),
     new THREE.MeshBasicMaterial({ color: 0x4dfff0 }),
@@ -154,6 +180,14 @@ export function createTempleScene() {
 
       starMat.opacity = 0.55 + audio.sHigh * 1.6 + Math.sin(t * 3) * 0.06;
       starMat.size = 0.45 + audio.sHigh * 0.6;
+
+      // hologram flicker: steady shimmer plus scanline-style dropouts
+      holoMat.opacity = 0.1 + env * 0.18 + (Math.sin(t * 31) > 0.7 ? 0.12 : 0);
+
+      for (let i = 0; i < shafts.length; i++) {
+        shafts[i].material.opacity = 0.035 + audio.intensity * 0.05 + env * 0.04;
+        shafts[i].rotation.y = t * 0.1 * (i % 2 ? 1 : -1);
+      }
 
       for (const s of shards) {
         s.rotation.x += dt * s.userData.spin;

@@ -6,6 +6,10 @@
 // Manual scene picks (1-4) pause the auto-director; A resumes it.
 
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 export class Director {
   constructor(renderer, audio, scenes, overlays) {
@@ -15,6 +19,17 @@ export class Director {
     this.overlays = overlays;
 
     this.camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 600);
+
+    // HDR bloom is what sells the lasers/neon/strobes — everything emissive
+    // above the threshold blooms, and the strength breathes with the music
+    this.composer = new EffectComposer(renderer);
+    this.composer.setPixelRatio(renderer.getPixelRatio());
+    this.renderPass = new RenderPass(scenes[0].scene, this.camera);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.55, 0.55);
+    this.composer.addPass(this.renderPass);
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
+
     this.index = 0;
     this.auto = true;
     this.titles = true;
@@ -27,6 +42,7 @@ export class Director {
     this.punch = 0;
     this.elapsed = 0;
     this.ended = false;
+    this._lastUsed = { 0: 0 };
 
     this._P = new THREE.Vector3();
     this._L = new THREE.Vector3();
@@ -94,7 +110,10 @@ export class Director {
       if (i !== this.index && s.mood.includes(mood)) candidates.push(i);
     });
     if (!candidates.length) return null;
-    return candidates[(Math.random() * candidates.length) | 0];
+    // least-recently-used keeps the film rotating through every chapter
+    // instead of ping-ponging between two favorites
+    candidates.sort((a, b) => (this._lastUsed[a] ?? -1) - (this._lastUsed[b] ?? -1));
+    return candidates[0];
   }
 
   // ---------- scene control ----------
@@ -112,6 +131,7 @@ export class Director {
 
   _activate(i, wasDrop) {
     this.index = i;
+    this._lastUsed[i] = this.elapsed;
     this.shotIndex = (Math.random() * this.current.shots.length) | 0;
     this.shotTime = 0;
     this.barsInShot = 0;
@@ -142,6 +162,7 @@ export class Director {
   resize(w, h) {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.composer.setSize(w, h);
   }
 
   // ---------- per-frame ----------
@@ -171,6 +192,9 @@ export class Director {
     this.camera.fov = (shot.fov ?? 55) - this.punch * 2.2; // kick punch-in
     this.camera.updateProjectionMatrix();
 
-    this.renderer.render(sc.scene, this.camera);
+    this.renderPass.scene = sc.scene;
+    this.renderPass.camera = this.camera;
+    this.bloom.strength = 0.55 + a.intensity * 0.55 + this.punch * 0.3;
+    this.composer.render();
   }
 }

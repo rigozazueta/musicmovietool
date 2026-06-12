@@ -43,12 +43,12 @@ export function createDunesScene() {
   );
   scene.add(terrain);
 
-  // sun disc sits outside the fog so it stays a clean cinematic circle
+  // twin suns sit outside the fog so they stay clean cinematic circles
   const sun = new THREE.Mesh(
     new THREE.CircleGeometry(16, 48),
     new THREE.MeshBasicMaterial({ color: 0xffc06a, fog: false }),
   );
-  sun.position.set(-35, 16, -160);
+  sun.position.set(-42, 15, -160);
   scene.add(sun);
   const sunHalo = new THREE.Mesh(
     new THREE.CircleGeometry(26, 48),
@@ -59,6 +59,30 @@ export function createDunesScene() {
   );
   sunHalo.position.copy(sun.position).z -= 0.5;
   scene.add(sunHalo);
+
+  const sun2 = new THREE.Mesh(
+    new THREE.CircleGeometry(8, 40),
+    new THREE.MeshBasicMaterial({ color: 0xffe3b0, fog: false }),
+  );
+  sun2.position.set(-12, 24, -161);
+  scene.add(sun2);
+  const sun2Halo = new THREE.Mesh(
+    new THREE.CircleGeometry(13, 40),
+    new THREE.MeshBasicMaterial({
+      color: 0xffc98a, fog: false, transparent: true, opacity: 0.2,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    }),
+  );
+  sun2Halo.position.copy(sun2.position).z -= 0.5;
+  scene.add(sun2Halo);
+
+  // a colossus half-buried in the sand, hazed by distance — ancient and huge
+  const relic = makeFigure({ color: 0x140a10, accent: 0xffb36b, scale: 24 });
+  relic.group.position.set(30, -11, -88); // sunk to the waist
+  relic.group.rotation.y = -0.5;
+  relic.parts.armL.rotation.x = -2.9; // one arm frozen reaching for the suns
+  relic.parts.head.rotation.x = 0.25;
+  scene.add(relic.group);
 
   // the pilgrim — everything camera-relative lives in this group so the walk
   // can wrap around the periodic terrain invisibly
@@ -106,12 +130,14 @@ export function createDunesScene() {
       pilgrim.group.position.y = duneHeight(px, 0);
       pilgrim.group.rotation.y = -Math.PI / 2; // walking +x
 
-      // sky drifts with the mids, sun breathes with the bass
+      // sky drifts with the mids, suns breathe with the bass
       scene.background.copy(skyA).lerp(skyB, THREE.MathUtils.clamp(audio.sMid * 1.6, 0, 1));
       scene.fog.color.copy(scene.background);
       const pulse = 1 + audio.sBass * 0.18;
       sun.scale.setScalar(pulse);
       sunHalo.scale.setScalar(pulse * (1 + audio.intensity * 0.3));
+      sun2.scale.setScalar(1 + audio.sBass * 0.1);
+      sun2Halo.scale.setScalar(1 + audio.sBass * 0.2);
       sunLight.intensity = 1.6 + audio.sBass * 1.6;
 
       const pos = dust.positions;

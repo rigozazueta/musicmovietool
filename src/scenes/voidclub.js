@@ -3,7 +3,7 @@
 // light wall and a fan of lasers. Pure club energy, no horizon.
 
 import * as THREE from 'three';
-import { makeFigure, makeParticles, beatEnv } from './common.js';
+import { makeFigure, beatEnv } from './common.js';
 
 export function createVoidScene() {
   const scene = new THREE.Scene();
@@ -74,13 +74,27 @@ export function createVoidScene() {
   }
   scene.add(laserGroup);
 
-  // confetti burst on drops
-  const confetti = makeParticles({
-    count: 900, box: [40, 22, 40], color: 0xffffff, size: 0.14, opacity: 0,
-    blending: THREE.AdditiveBlending,
+  // hyperspace jump on drops: star streaks rushing through the room
+  const STREAKS = 240;
+  const streakPos = new Float32Array(STREAKS * 6);
+  const streakBase = [];
+  for (let i = 0; i < STREAKS; i++) {
+    streakBase.push({
+      x: (Math.random() - 0.5) * 70,
+      y: Math.random() * 26 - 2,
+      z: Math.random() * 90,
+      len: 2 + Math.random() * 4,
+    });
+  }
+  const streakGeo = new THREE.BufferGeometry();
+  streakGeo.setAttribute('position', new THREE.BufferAttribute(streakPos, 3));
+  const streakMat = new THREE.LineBasicMaterial({
+    color: 0xbfe9ff, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false,
   });
-  scene.add(confetti.points);
-  let confettiLife = 0;
+  scene.add(new THREE.LineSegments(streakGeo, streakMat));
+  let hyperLife = 0;
+  let hyperOff = 0;
 
   const laserHue = new THREE.Color();
 
@@ -91,7 +105,7 @@ export function createVoidScene() {
     shake: 0.6,
     scene,
 
-    onDrop() { confettiLife = 1; },
+    onDrop() { hyperLife = 1; },
 
     update(dt, t, audio) {
       const env = beatEnv(audio);
@@ -115,16 +129,22 @@ export function createVoidScene() {
         lasers[i].mat.opacity = 0.15 + audio.intensity * 0.45 + env * 0.25;
       }
 
-      if (confettiLife > 0) {
-        confettiLife = Math.max(0, confettiLife - dt * 0.18);
-        const pos = confetti.positions;
-        for (let i = 0; i < confetti.count; i++) {
-          pos[i * 3 + 1] -= dt * (3 + (i % 5));
-          if (pos[i * 3 + 1] < 0) pos[i * 3 + 1] = confetti.box[1];
+      if (hyperLife > 0) {
+        hyperLife = Math.max(0, hyperLife - dt * 0.2);
+        hyperOff += dt * (50 + 90 * hyperLife);
+        for (let i = 0; i < STREAKS; i++) {
+          const b = streakBase[i];
+          const z = ((b.z + hyperOff) % 90) - 55;
+          streakPos[i * 6] = b.x;
+          streakPos[i * 6 + 1] = b.y;
+          streakPos[i * 6 + 2] = z;
+          streakPos[i * 6 + 3] = b.x;
+          streakPos[i * 6 + 4] = b.y;
+          streakPos[i * 6 + 5] = z - b.len * (1 + hyperLife * 2);
         }
-        confetti.geo.attributes.position.needsUpdate = true;
+        streakGeo.attributes.position.needsUpdate = true;
       }
-      confetti.mat.opacity = confettiLife * 0.9;
+      streakMat.opacity = Math.min(1, hyperLife * 1.6) * 0.85;
     },
 
     shots: [

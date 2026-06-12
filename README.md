@@ -21,6 +21,8 @@ Open the printed URL (usually `http://localhost:5173`), then either:
   comes through untouched.
 - **TAB AUDIO** — capture sound from another browser tab (rekordbox web,
   SoundCloud, Spotify web…). Tick *"share tab audio"* in the picker.
+- **MIDI** — lock the beat grid to MIDI clock from a DJM mixer, CDJs, Ableton
+  or Traktor (see *Syncing to a live DJ set*).
 
 `npm run build` produces a static `dist/` you can host anywhere.
 
@@ -46,34 +48,58 @@ A **Director** turns those signals into film grammar:
 
 - Camera **shots cut on bar boundaries** — faster cutting when the energy is up,
   plus handheld shake and a subtle punch-in on every kick.
-- **Scenes switch on phrase boundaries**, matched to the music's mood.
+- **Scenes switch on phrase boundaries**, matched to the music's mood, rotating
+  through the least-recently-seen chapter so the film keeps moving.
 - A **drop** (breakdown → peak) is a white-flash hard cut into a peak scene.
 - A **breakdown** fades slowly into a calm scene.
-- Letterbox, film grain, vignette, ACES filmic tone mapping, chapter title
-  cards, a *now playing* card, and *FIN* when the track ends.
+- **HDR bloom** that breathes with the music — neon, lasers, strobes and engine
+  glows actually *glow* — plus letterbox, film grain, vignette, ACES filmic
+  tone mapping, chapter title cards, a *now playing* card, and *FIN* when the
+  track ends.
 
 ### Chapters
 
 | | Scene | Mood | What's in it |
 | --- | --- | --- | --- |
-| I | **Neon District** | groove / peak | Rain-slicked city, pulsing windows and neon, a rooftop dancer |
-| II | **Dune Pilgrim** | groove / calm | Endless dusk desert, a walker stepping on the beat, breathing sun, birds |
-| III | **Astral Temple** | breakdown | Floating temple in space, meditating monk, orbiting orbs, shimmering stars |
-| IV | **The Void** | peak / drops | A dancing crowd in blackness, kick-synced strobe wall, laser fan, confetti |
+| I | **Neon District** | groove / peak | Rain-slicked city, pulsing windows and neon, a rooftop dancer, a capital ship crawling across the sky |
+| II | **Dune Pilgrim** | groove / calm | Twin-sun desert at dusk, a walker stepping on the beat, a colossus half-buried on the horizon |
+| III | **Astral Temple** | breakdown | Floating temple in space, hologram-shimmering monk, orbiting orbs, light shafts |
+| IV | **The Void** | peak / drops | A dancing crowd in blackness, kick-synced strobe wall, laser fan, hyperspace jump on the drop |
+| V | **The Colossus** | peak / breakdown | A giant android over a tiny crowd — chest core burning with the bass, arms rising with the energy |
+| VI | **The Fleet** | groove / calm | An armada over a ringed planet, fighters weaving, silent turbolaser volleys when it runs hot |
+| VII | **The Grid** | groove / peak | Infinite neon wireframe scrolling one cell per beat, equalizer towers, light trails, a rider on a hover platform |
 
 ## Controls
 
 | Key | Action |
 | --- | --- |
 | `Space` | Play / pause (file source) |
-| `1–4` | Force a scene (pauses the auto-director) |
+| `1–7` | Force a scene (pauses the auto-director) |
 | `A` | Resume auto-director |
+| `B` | Mark the downbeat (press on the "one" so bars/phrases line up) |
 | `F` | Fullscreen (for the projector) |
 | `T` | Show the title card (edit artist/title in the HUD) |
 | `L` | Toggle letterbox |
 | `H` | Hide the UI |
 
 The UI also auto-hides after a few seconds of no mouse movement.
+
+## Syncing to a live DJ set
+
+Three tiers, combinable:
+
+1. **Audio only (works everywhere):** take the *record* or *booth* out of the
+   mixer into a USB audio interface, click **LIVE IN** and pick that input.
+   Beats, BPM, and sections are detected from the audio itself.
+2. **Audio + MIDI clock (tightest, recommended):** most DJ gear and DAWs
+   transmit MIDI clock — DJM mixers and CDJs (set *MIDI clock send* on), Ableton
+   (*Link/Tempo/MIDI → Clock out*), Traktor (*send MIDI clock*). Connect the
+   gear by USB, click **MIDI** in the HUD and allow access. While ticks are
+   flowing the beat grid locks to your gear sample-accurately (`·MIDI` shows
+   next to the BPM) and the audio input keeps driving energy and sections.
+   Tap `B` on a downbeat once so bars and phrases line up with your phrasing.
+3. **Roadmap:** Ableton Link and Pro DJ Link need a tiny local bridge app
+   (browsers can't speak UDP) — planned below.
 
 ## Architecture
 
@@ -96,10 +122,29 @@ and a list of camera *shots*. Adding a chapter = adding one file that returns
 `{ name, numeral, mood, scene, update, shots }` and registering it in
 `src/main.js`.
 
+## Pushing the look further
+
+What's in the box already gets you a long way: HDR bloom, ACES grading, grain,
+letterbox, and art-directed scenes. The realistic ladder from here to
+arena-grade visuals:
+
+1. **More in-engine craft (free):** custom shaders (volumetric light, fresnel
+   rim glow on characters, SDF environments), higher-detail character rigs,
+   post FX like chromatic aberration and anamorphic flares.
+2. **AI-generated art assets:** equirectangular skybox paintings and backdrop
+   plates generated per scene (Midjourney, Higgsfield, etc.) used as
+   `scene.background` / environment maps — big visual lift, zero runtime cost.
+3. **Pro pipeline integration:** acts like Anyma run Notch / TouchDesigner /
+   Unreal Engine driven by timecode, with content teams. This tool can sit in
+   that world today: run it fullscreen and bring the browser window into
+   **Resolume / OBS as a capture source**, layered with other content. A later
+   step is porting the Director concept onto TouchDesigner or Unreal for
+   movie-grade rendering with the same musical brain.
+
 ## Ideas / roadmap
 
-- More chapters (forest, ocean, brutalist interior…) and more character rigs
-- AI-generated backdrops and character skins per scene
-- MIDI clock / Ableton Link input for sample-accurate beat sync
+- More chapters (ocean abyss, brutalist interior, forest…) and richer rigs
+- AI-generated skyboxes and character skins per scene
+- Ableton Link / Pro DJ Link via a small local bridge app
 - Recording the output to video for music-video exports
 - Per-track scene scripting (timeline of chapters for a finished film)
