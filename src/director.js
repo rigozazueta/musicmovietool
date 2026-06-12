@@ -130,6 +130,7 @@ export class Director {
   }
 
   _activate(i, wasDrop) {
+    this.current.onExit?.();
     this.index = i;
     this._lastUsed[i] = this.elapsed;
     this.shotIndex = (Math.random() * this.current.shots.length) | 0;

@@ -1,5 +1,6 @@
 node_modules/
 dist/
 public/skies/
+public/videos/
 .DS_Store
 *.local

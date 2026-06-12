@@ -12,6 +12,7 @@ import { createVoidScene } from './scenes/voidclub.js';
 import { createColossusScene } from './scenes/colossus.js';
 import { createFleetScene } from './scenes/fleet.js';
 import { createGridScene } from './scenes/grid.js';
+import { createMonolithScene } from './scenes/monolith.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -34,6 +35,7 @@ const scenes = [
   createColossusScene(),
   createFleetScene(),
   createGridScene(),
+  createMonolithScene(),
 ];
 const director = new Director(renderer, audio, scenes, overlays);
 const ui = createUI({ audio, midi, sync, director, overlays });

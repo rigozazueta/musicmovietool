@@ -73,6 +73,7 @@ A **Director** turns those signals into film grammar:
 | V | **The Colossus** | peak / breakdown | A giant android over a tiny crowd — chest core burning with the bass, arms rising with the energy |
 | VI | **The Fleet** | groove / calm | An armada over a ringed planet, fighters weaving, silent turbolaser volleys when it runs hot |
 | VII | **The Grid** | groove / peak | Infinite neon wireframe scrolling one cell per beat, equalizer towers, light trails, a rider on a hover platform |
+| VIII | **The Monolith** | groove / peak | A vast screen slab playing AI-generated film loops to a watching crowd — clips cut on phrases, the picture pumps with the kick, drops slam on the hyperspace reel |
 
 ## Controls
 
@@ -172,10 +173,15 @@ arena-grade visuals:
    post FX like chromatic aberration and anamorphic flares.
 2. **AI-generated art assets** *(in use now)*: the Dunes, Temple and Fleet
    chapters wrap AI-painted 2560×1080 backdrops around the scene on a sky dome
-   (`addSkyDome` in `src/scenes/common.js`). `scripts/fetch-skies.mjs` pulls
-   them automatically before `dev`/`build`; drop your own art at
-   `public/skies/{dunes,temple,fleet}.png` to override, or delete the files to
-   fall back to fully procedural skies.
+   (`addSkyDome` in `src/scenes/common.js`), and **The Monolith** chapter plays
+   AI-generated film loops as music-reactive video textures.
+   `scripts/fetch-skies.mjs` pulls everything automatically before
+   `dev`/`build`; drop your own art at `public/skies/*.png` or 16:9 mp4 loops
+   at `public/videos/{awaken,crowd,nebula,hyper}.mp4` to override (existing
+   files always win), or delete them to fall back to procedural visuals.
+   Pure AI video can't react to live audio — clips take minutes to render — so
+   the pattern is pre-rendered loops with playback, cuts and brightness driven
+   by the live analysis, the same way professional VJ packs are played.
 3. **Pro pipeline integration:** acts like Anyma run Notch / TouchDesigner /
    Unreal Engine driven by timecode, with content teams. This tool can sit in
    that world today: run it fullscreen and bring the browser window into

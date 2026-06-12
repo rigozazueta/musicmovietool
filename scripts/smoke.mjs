@@ -22,6 +22,7 @@ const { createVoidScene } = await import('../src/scenes/voidclub.js');
 const { createColossusScene } = await import('../src/scenes/colossus.js');
 const { createFleetScene } = await import('../src/scenes/fleet.js');
 const { createGridScene } = await import('../src/scenes/grid.js');
+const { createMonolithScene } = await import('../src/scenes/monolith.js');
 
 const fakeAudio = {
   bass: 0.5, mid: 0.3, high: 0.2,
@@ -37,7 +38,7 @@ let failed = false;
 
 for (const create of [
   createNeonScene, createDunesScene, createTempleScene, createVoidScene,
-  createColossusScene, createFleetScene, createGridScene,
+  createColossusScene, createFleetScene, createGridScene, createMonolithScene,
 ]) {
   const sc = create();
   try {
